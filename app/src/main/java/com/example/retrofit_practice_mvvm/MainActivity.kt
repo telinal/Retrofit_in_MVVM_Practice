@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.RecyclerView
+import com.example.retrofit_practice_mvvm.adapters.QuoteAdapter
 import com.example.retrofit_practice_mvvm.api.QuoteAPI
 import com.example.retrofit_practice_mvvm.api.RetrofitHelper
 import com.example.retrofit_practice_mvvm.repository.QuoteRepository
@@ -21,15 +23,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val quoteAPI = RetrofitHelper.getInstance().create(QuoteAPI::class.java)
-        val repository = QuoteRepository(quoteAPI)
+        val recyclerView = findViewById<RecyclerView>(R.id.codesRecyclerView)
+        val quoteAdapter = QuoteAdapter()
+        recyclerView.adapter = quoteAdapter
+        val repository =(application as QuoteApplication).quoteRepository
         mainViewModel = ViewModelProvider(this, MainViewModelFactory(repository)).get(MainViewModel::class.java)
 
         mainViewModel.quotes.observe(this, Observer {
-            Log.d("TELINACODE", it.results.toString())
+            quoteAdapter.submitList(it.results)
         })
-
-
-
     }
 }
