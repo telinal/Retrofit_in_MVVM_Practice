@@ -7,7 +7,7 @@ import com.example.retrofit_practice_mvvm.Utils.NetworkUtils
 import com.example.retrofit_practice_mvvm.api.QuoteAPI
 import com.example.retrofit_practice_mvvm.db.QuoteDatabase
 import com.example.retrofit_practice_mvvm.models.QuoteList
-import java.lang.Exception
+import kotlin.Exception
 
 class QuoteRepository(
     private val quoteAPI: QuoteAPI,
@@ -15,24 +15,30 @@ class QuoteRepository(
     private val applicationContext: Context
 ) {
 
-    private val quotesLiveData = MutableLiveData<QuoteList>()
+    private val quotesLiveData = MutableLiveData<Response<QuoteList>>()
 
-    val quotes : LiveData<QuoteList>
+    val quotes : LiveData<Response<QuoteList>>
         get() = quotesLiveData
 
     suspend fun getQuotes(page: Int) {
 
         if (NetworkUtils.isInternetAvailable(applicationContext)) {
-            val result = quoteAPI.getQuotes(page)
-            if (result?.body() != null) {
-                quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
-                quotesLiveData.postValue(result.body())
+            try {
+                val result = quoteAPI.getQuotes(page)
+                if (result?.body() != null) {
+                    quoteDatabase.quoteDao().addQuotes(result.body()!!.results)
+                    quotesLiveData.postValue(Response.Success(result.body()))
+            }
+
+            }
+            catch (e: Exception) {
+                quotesLiveData.postValue(Response.Error(e.message.toString()))
             }
         }
         else{
             val quotes = quoteDatabase.quoteDao().getQuotes()
             val quoteList = QuoteList(1,1,1,quotes, 1, 1)
-            quotesLiveData.postValue(quoteList)
+            quotesLiveData.postValue(Response.Success(quoteList))
         }
 
         }

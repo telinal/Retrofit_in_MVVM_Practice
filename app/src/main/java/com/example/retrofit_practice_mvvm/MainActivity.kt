@@ -3,6 +3,7 @@ package com.example.retrofit_practice_mvvm
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -10,6 +11,7 @@ import com.example.retrofit_practice_mvvm.adapters.QuoteAdapter
 import com.example.retrofit_practice_mvvm.api.QuoteAPI
 import com.example.retrofit_practice_mvvm.api.RetrofitHelper
 import com.example.retrofit_practice_mvvm.repository.QuoteRepository
+import com.example.retrofit_practice_mvvm.repository.Response
 import com.example.retrofit_practice_mvvm.viewmodel.MainViewModel
 import com.example.retrofit_practice_mvvm.viewmodel.MainViewModelFactory
 import kotlinx.coroutines.GlobalScope
@@ -30,7 +32,19 @@ class MainActivity : AppCompatActivity() {
         mainViewModel = ViewModelProvider(this, MainViewModelFactory(repository)).get(MainViewModel::class.java)
 
         mainViewModel.quotes.observe(this, Observer {
-            quoteAdapter.submitList(it.results)
+            when (it) {
+                is Response.Loading -> {
+
+                }
+                is Response.Success -> {
+                    quoteAdapter.submitList(it.data?.results)
+                }
+                is Response.Error -> {
+                    it.errorMessage
+                    Toast.makeText(this, it.errorMessage.toString(), Toast.LENGTH_SHORT).show()
+                }
+            }
+
         })
     }
 }
